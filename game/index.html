@@ -1,0 +1,149 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>CABO LUME — golden-hour open-world crime</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<canvas id="game"></canvas>
+
+<!-- ============ HUD ============ -->
+<div id="hud" class="hidden">
+  <div class="hud-tl">
+    <div id="stars" class="stars heat-0">☆☆☆☆☆</div>
+    <div class="heat-bar"><div id="heat-fill"></div></div>
+    <div class="cash-row"><span id="cash">$250</span><span id="respect-rank">ROOKIE</span></div>
+    <div class="respect-bar"><div id="respect-fill"></div></div>
+    <div class="respect-num"><span id="respect-num">0 / 400</span> respect</div>
+    <div class="hp-row"><span>YOU <span class="hp-bar"><span id="player-hp-fill"></span></span></span><span>CAR <span class="hp-bar"><span id="car-hp-fill"></span></span></span></div>
+  </div>
+
+  <div class="hud-tc">
+    <div class="weapons">
+      <span class="wslot sel">FISTS</span><span class="wslot">PISTOL</span><span class="wslot">SMG</span>
+    </div>
+    <div id="clock">17:20</div>
+    <div id="radio-name">ONDA 88.5 — Synthwave</div>
+  </div>
+
+  <div class="hud-tr">
+    <div class="dispatch-title">CLPD DISPATCH — CABO LUME</div>
+    <div id="dispatch-list"></div>
+  </div>
+
+  <div class="hud-ml">
+    <div id="mission-act">ACT I — THE DEBT</div>
+    <div id="mission-title">FREE ROAM — CABO LUME</div>
+    <div id="mission-objective">Drive to the “!” at Farol Garage (E) to start the next job</div>
+    <div class="mission-bar"><div id="mission-bar-fill"></div></div>
+    <div id="mission-hint">WASD drive · E enter/exit · G garage · Q radio · 1/2/3 crew</div>
+  </div>
+
+  <div class="hud-bl">
+    <div class="crew-title">CREW — OS FARÓIS</div>
+    <div class="crew-row">
+      <div class="crew-card ready" id="crew-rui"><span class="crew-key">1</span><span class="crew-name">RUI “Ghost”</span><span class="crew-desc">Hacker · drops 1★</span><span class="crew-cd"></span><span class="crew-cd-label">READY</span></div>
+      <div class="crew-card ready" id="crew-tomas"><span class="crew-key">2</span><span class="crew-name">TOMÁS “Turbo”</span><span class="crew-desc">Wheelman · nitro 4s</span><span class="crew-cd"></span><span class="crew-cd-label">READY</span></div>
+      <div class="crew-card ready" id="crew-ines"><span class="crew-key">3</span><span class="crew-name">INÊS “Doc”</span><span class="crew-desc">Muscle · repair + shove</span><span class="crew-cd"></span><span class="crew-cd-label">READY</span></div>
+    </div>
+  </div>
+
+  <div class="hud-bc">
+    <div id="car-name">Vela GT</div>
+    <div class="speed-row"><span id="speed">0</span><span id="speed-unit">km/h</span></div>
+    <div class="nitro-bar"><div id="nitro-fill"></div></div>
+    <div class="nitro-label">NITRO</div>
+  </div>
+
+  <div class="hud-br">
+    <canvas id="minimap" width="170" height="170"></canvas>
+    <div class="minimap-label">CABO LUME</div>
+  </div>
+
+  <div id="dialogue-box" class="hidden">
+    <div id="dialogue-speaker">NADIA</div>
+    <div id="dialogue-text"></div>
+    <div class="dialogue-hint">click / E ▸</div>
+  </div>
+
+  <div id="toasts"></div>
+  <div id="pops"></div>
+</div>
+
+<!-- ============ Title ============ -->
+<div id="title-screen" class="overlay">
+  <div class="title-inner">
+    <div class="title-kicker">A GOLDEN-HOUR OPEN-WORLD CRIME GAME</div>
+    <h1>CABO LUME</h1>
+    <div class="title-sub">12 story missions · 5-star CLPD dispatch · FALCÃO-1 spotlight heli · roadblocks · crew · garage · day cycle · radio</div>
+    <div class="title-story">Nadia Reyes, ex-stunt driver, owes loan shark Senhor Malta forty grand for her late father’s garage. The crew Os Faróis runs the cape by night — steal it back, job by job, before dawn.</div>
+    <button id="start-btn" class="big-btn">▶ &nbsp;START ENGINE</button>
+    <button id="howto-btn" class="ghost-btn">HOW TO PLAY</button>
+    <div id="howto" class="hidden">
+      <b>WASD / arrows</b> drive or walk · <b>Shift</b> sprint · <b>Space</b> handbrake · <b>E</b> enter / exit car, start jobs, advance dialogue · <b>G</b> garage (at Farol Garage) · <b>M</b> missions · <b>Q</b> radio station · <b>1 / 2 / 3</b> crew abilities · <b>R</b> back on the road · <b>Esc</b> pause<br>
+      Lose the cops to drop heat. The spotlight heli at 3★ slows your escape. Roadblocks at 4★ — smash them or go around. Save: automatic.
+    </div>
+    <div class="title-foot">CABO LUME · a fictional city · built for make.fun’s “Make GTA 6” bounty · $0 budget, no network, deterministic seed</div>
+  </div>
+</div>
+
+<!-- ============ Pause ============ -->
+<div id="pause-screen" class="overlay hidden">
+  <div class="panel">
+    <h2>PAUSED</h2>
+    <p id="pause-stats">Cabo Lume waits. The sun does not.</p>
+    <button id="resume-btn" class="big-btn">RESUME</button>
+  </div>
+</div>
+
+<!-- ============ Busted ============ -->
+<div id="busted-screen" class="overlay hidden">
+  <div class="panel">
+    <h2>BUSTED</h2>
+    <p>CLPD took you in. The garage posts $300 bail and the city forgets — this time.</p>
+    <button id="respawn-btn" class="big-btn">BACK TO FAROL GARAGE (Enter)</button>
+  </div>
+</div>
+
+<!-- ============ Mission complete ============ -->
+<div id="complete-screen" class="overlay hidden">
+  <div class="panel">
+    <h2 id="complete-title">JOB DONE</h2>
+    <p id="complete-sub"></p>
+    <button id="complete-continue-btn" class="big-btn">KEEP DRIVING (Enter)</button>
+  </div>
+</div>
+
+<!-- ============ Garage ============ -->
+<div id="garage-panel" class="overlay hidden">
+  <div class="panel wide">
+    <h2>FAROL GARAGE</h2>
+    <div id="garage-list"></div>
+    <button id="garage-close-btn" class="big-btn">CLOSE (G)</button>
+  </div>
+</div>
+
+<!-- ============ Missions ============ -->
+<div id="mission-panel" class="overlay hidden">
+  <div class="panel wide">
+    <h2>JOB BOARD — OS FARÓIS</h2>
+    <div id="mission-list"></div>
+    <button id="mission-close-btn" class="big-btn">CLOSE (M)</button>
+  </div>
+</div>
+
+<div id="err"></div>
+
+<script src="src/rng.js"></script>
+<script src="src/world.js"></script>
+<script src="src/missions.js"></script>
+<script src="src/render3d.js"></script>
+<script src="src/audio.js"></script>
+<script src="src/game.js"></script>
+<script src="src/hud.js"></script>
+<script src="src/shots.js"></script>
+<script src="src/main.js"></script>
+</body>
+</html>
